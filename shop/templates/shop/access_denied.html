@@ -1,0 +1,19 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-16 bg-white p-8 rounded-xl shadow-md border border-red-200 text-center">
+    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-3xl mb-4">
+        🔒
+    </div>
+    <h1 class="text-xl font-black text-gray-900 uppercase tracking-wide mb-2">Доступ ограничен</h1>
+    <p class="text-sm text-gray-600 mb-6">
+        Уважаемый(а) <span class="font-bold text-gray-800">{{ username }}</span>, вашего аккаунта нет в официальной базе данных сотрудников Li-Ning.
+    </p>
+    <div class="p-4 bg-gray-50 rounded-lg text-xs text-left text-gray-500 mb-6 border">
+        <strong>Внимание:</strong> Все попытки несанкционированного входа в панель администрации фиксируются системой безопасности.
+    </div>
+    <a href="{% url 'shop:home' %}" class="inline-block bg-gray-900 text-white font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-lg hover:bg-gray-800 transition w-full">
+        Вернуться на главную
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-12">
+
+    <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-6">
+
+        <h2 class="text-xl font-black text-gray-900 uppercase tracking-wider text-center">Корзина</h2>
+
+        {% if cart_items %}
+            <div class="flex flex-col space-y-4 divide-y divide-gray-100">
+                {% for item in cart_items %}
+                <div class="flex items-center justify-between pt-4 first:pt-0 w-full">
+
+                    <div class="flex items-center space-x-3">
+                        <div class="w-16 h-16 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center p-1 overflow-hidden">
+                            {% if item.product.image %}
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="object-contain max-h-full mix-blend-multiply">
+                            {% else %}
+                                <span class="text-2xl">👟</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex flex-col">
+                            <h4 class="text-xs font-bold text-gray-800 line-clamp-1 w-36">{{ item.product.name }}</h4>
+
+                            <div class="mt-1 flex items-center space-x-1">
+                                <label class="text-[10px] text-gray-400">Размер:</label>
+                                <select class="bg-gray-50 border border-gray-200 text-[11px] font-bold text-gray-700 rounded px-1 py-0.5 focus:outline-none focus:border-blue-700">
+                                    <option value="39">39</option>
+                                    <option value="40">40</option>
+                                    <option value="41">41</option>
+                                    <option value="42" selected>42</option>
+                                    <option value="43">43</option>
+                                    <option value="44">44</option>
+                                </select>
+                            </div>
+
+                            <span class="text-xs font-black text-gray-900 mt-1">{{ item.product.price }} сом</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+    <div class="flex items-center border border-gray-200 rounded-xl text-xs bg-gray-50 font-bold overflow-hidden">
+
+        <a href="{% url 'shop:cart_minus' item.item_key %}" class="px-2.5 py-1.5 text-gray-600 select-none cursor-pointer hover:bg-gray-100 transition">-</a>
+
+        <span class="px-2 py-1.5 text-gray-800 bg-white">{{ item.quantity }}</span>
+
+        <a href="{% url 'shop:cart_add' item.product.id %}" class="px-2.5 py-1.5 text-gray-600 hover:text-blue-700 hover:bg-gray-100 transition">+</a>
+    </div>
+
+    <a href="{% url 'shop:cart_remove' item.product.id %}" class="text-gray-300 hover:text-red-500 transition p-1 text-sm">
+        <i class="fa-solid fa-trash-can"></i>
+    </a>
+</div>
+
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="border-t border-gray-100 pt-4 space-y-4">
+                <div class="flex justify-between items-baseline">
+                    <span class="text-sm font-bold text-gray-500">Итого:</span>
+                    <span class="text-xl font-black text-blue-700 tracking-tight">{{ total_price }} сом</span>
+                </div>
+
+                <a href="{% url 'shop:checkout' %}" class="w-full bg-blue-700 text-white font-bold text-xs uppercase tracking-wider py-4 rounded-2xl hover:bg-blue-800 transition shadow-md block text-center">
+                    Оформить заказ
+                </a>
+            </div>
+
+        {% else %}
+            <div class="text-center py-12 text-gray-400 text-sm">
+                <span class="text-4xl block mb-2">🛒</span>
+                Ваша корзина пока пуста.<br>
+                <a href="{% url 'shop:catalog' %}" class="text-blue-700 font-bold underline mt-2 inline-block">Перейти в каталог</a>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

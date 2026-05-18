@@ -1,0 +1,108 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+    
+    <div class="flex items-center justify-center space-x-4 mb-8 text-xs font-bold uppercase tracking-wider">
+        <div class="flex items-center text-blue-700 space-x-2">
+            <span class="w-5 h-5 bg-blue-700 text-white rounded-full flex items-center justify-center text-[10px]">1</span>
+            <span>Доставка</span>
+        </div>
+        <div class="w-12 h-px bg-gray-200"></div>
+        <div class="flex items-center text-gray-400 space-x-2">
+            <span class="w-5 h-5 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-[10px]">2</span>
+            <span>Оплата</span>
+        </div>
+        <div class="w-12 h-px bg-gray-200"></div>
+        <div class="flex items-center text-gray-400 space-x-2">
+            <span class="w-5 h-5 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-[10px]">3</span>
+            <span>Подтверждение</span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <form method="POST" id="checkout-form" class="lg:col-span-7 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-6">
+            {% csrf_token %}
+            
+            <h2 class="text-lg font-black text-gray-900 uppercase tracking-tight">Оформление заказа</h2>
+
+            <div class="space-y-3">
+                <label class="text-xs font-black text-gray-400 uppercase tracking-wider block">Контактные данные</label>
+                <div>
+                    <input type="text" name="name" placeholder="Имя" required
+                           class="w-full bg-gray-50 border border-gray-200 text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-blue-700">
+                </div>
+                <div>
+                    <input type="tel" name="phone" placeholder="Телефон" value="+996 " required
+                           class="w-full bg-gray-50 border border-gray-200 text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-blue-700">
+                </div>
+            </div>
+
+            <div class="space-y-3 pt-2">
+                <label class="text-xs font-black text-gray-400 uppercase tracking-wider block">Адрес доставки</label>
+                <div>
+                    <input type="text" name="city" placeholder="Город" value="Бишкек" required
+                           class="w-full bg-gray-50 border border-gray-200 text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-blue-700">
+                </div>
+                <div>
+                    <input type="text" name="address" placeholder="Улица, дом, квартира" required
+                           class="w-full bg-gray-50 border border-gray-200 text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-blue-700">
+                </div>
+            </div>
+
+            <div class="space-y-3 pt-2">
+                <label class="text-xs font-black text-gray-400 uppercase tracking-wider block">Способ доставки</label>
+                
+                <div class="border border-blue-600 rounded-xl p-4 bg-blue-50/40 flex items-center justify-between cursor-pointer">
+                    <div class="flex items-center space-x-3">
+                        <input type="radio" name="shipping_method" checked class="text-blue-700 focus:ring-blue-600">
+                        <div>
+                            <span class="text-xs font-bold text-gray-900 block">Курьером по Бишкеку (1-2 дня)</span>
+                            <span class="text-[10px] text-gray-400 block mt-0.5">До двери, с примеркой</span>
+                        </div>
+                    </div>
+                    <span class="text-xs font-black text-green-600 uppercase">Бесплатно</span>
+                </div>
+            </div>
+        </form>
+
+        <div class="lg:col-span-5 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+            <h3 class="text-sm font-black text-gray-900 uppercase tracking-tight">Ваш заказ</h3>
+            
+            <div class="max-h-40 overflow-y-auto divide-y divide-gray-100 pr-2">
+                {% for item in cart_items %}
+                <div class="flex justify-between items-center py-2 text-xs">
+                    <div class="text-gray-600">
+                        <span class="font-bold text-gray-800">{{ item.product.name }}</span> 
+                        <span class="text-[10px] text-gray-400 block">Размер: {{ item.size }} — {{ item.quantity }} шт.</span>
+                    </div>
+                    <span class="font-black text-gray-900 whitespace-nowrap">{{ item.product.price }} сом</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="space-y-2 border-t border-b border-gray-100 py-4 text-xs font-medium text-gray-600">
+                <div class="flex justify-between">
+                    <span>Товаров ({{ total_quantity }} шт.):</span>
+                    <span class="font-bold text-gray-900">{{ total_price }} сом</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Доставка:</span>
+                    <span class="font-bold text-green-600">0 сом</span>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-baseline pt-2">
+                <span class="text-sm font-black text-gray-900">Итого:</span>
+                <span class="text-xl font-black text-blue-700 tracking-tight">{{ total_price }} сом</span>
+            </div>
+
+            <button type="submit" form="checkout-form" class="w-full bg-blue-700 text-white font-bold text-xs uppercase tracking-wider py-4 rounded-2xl hover:bg-blue-800 transition shadow-md block text-center cursor-pointer">
+                Перейти к оплате
+            </button>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

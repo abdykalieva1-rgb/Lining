@@ -1,0 +1,151 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="bg-gray-900 min-h-screen text-gray-100 p-6">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-6">
+        
+        <div class="w-full md:w-64 bg-gray-800 p-6 rounded-xl shadow-lg h-fit">
+            <h2 class="text-blue-500 font-black text-lg tracking-wider mb-6 italic">Панель администратора</h2>
+            <nav class="space-y-2">
+                <a href="{% url 'shop:admin_dashboard' %}" class="flex items-center space-x-3 text-gray-400 hover:bg-gray-700 p-3 rounded-lg font-medium text-sm transition">
+                    <span>📊</span> <span>Главная</span>
+                </a>
+                <a href="{% url 'shop:admin_products' %}" class="flex items-center space-x-3 text-gray-400 hover:bg-gray-700 p-3 rounded-lg font-medium text-sm transition">
+                    <span>👟</span> <span>Товары</span>
+                </a>
+                <a href="{% url 'shop:admin_orders' %}" class="flex items-center space-x-3 bg-blue-700 text-white p-3 rounded-lg font-bold text-sm">
+                    <span>📦</span> <span>Заказы</span>
+                </a>
+                <a href="{% url 'shop:admin_users' %}" class="flex items-center space-x-3 text-gray-400 hover:bg-gray-700 p-3 rounded-lg font-medium text-sm transition">
+                    <span>👤</span> <span>Пользователи</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="flex-1 bg-gray-800 p-6 rounded-xl border border-gray-700">
+            <div class="mb-6">
+                <h1 class="text-xl font-black text-white uppercase tracking-wide">Управление заказами</h1>
+                <p class="text-xs text-gray-400 mt-1">Всего оформлено: {{ orders.count }} заказов</p>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-700">
+                <table class="w-full text-left border-collapse bg-gray-900 text-sm">
+                    <thead>
+                        <tr class="bg-gray-850 text-gray-400 uppercase text-[11px] font-bold tracking-wider border-b border-gray-700">
+                            <th class="p-4">№</th>
+                            <th class="p-4">Клиент</th>
+                            <th class="p-4">Товар / Детали</th>
+                            <th class="p-4">Сумма</th>
+                            <th class="p-4">Статус</th>
+                            <th class="p-4 text-center">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800">
+                        {% for order in orders %}
+                        <tr class="hover:bg-gray-800/50 transition">
+                            <td class="p-4 font-mono font-bold text-blue-400">#{{ order.id }}</td>
+                            
+                            <td class="p-4">
+                                <div class="font-bold text-white">{{ order.user.username }}</div>
+                                <div class="text-xs text-gray-400">{{ order.created_at|date:"d.m.Y H:i" }}</div>
+                            </td>
+                            
+                            <td class="p-4 text-gray-300">
+                                <div class="font-semibold text-white">{{ order.product.name }}</div>
+                                <div class="text-xs text-gray-400 mt-0.5">
+                                    Размер: <span class="text-gray-200 font-mono">{{ order.size|default:"—" }}</span> | 
+                                    Цвет: <span class="text-gray-200">{{ order.color|default:"—" }}</span>
+                                </div>
+                            </td>
+                            
+                            <td class="p-4 font-bold text-green-400 font-mono">{{ order.total_price }} сом</td>
+                            
+                            <td class="p-4">
+                                {% if order.status == 'delivered' or order.status == 'Выполнен' or order.status == 'Доставлен' %}
+                                    <span class="text-[10px] uppercase font-extrabold bg-green-500/10 text-green-400 px-2 py-1 rounded border border-green-500/20">Доставлен</span>
+                                {% elif order.status == 'canceled' or order.status == 'Отменен' %}
+                                    <span class="text-[10px] uppercase font-extrabold bg-red-500/10 text-red-400 px-2 py-1 rounded border border-red-500/20">Отменен</span>
+                                {% else %}
+                                    <span class="text-[10px] uppercase font-extrabold bg-yellow-500/10 text-yellow-400 px-2 py-1 rounded border border-yellow-500/20">В обработке</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="p-4">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <button onclick="openStatusModal('{{ order.id }}', '{{ order.status }}')" class="text-xs font-bold text-yellow-500 hover:text-yellow-400 transition bg-yellow-500/10 px-2.5 py-1 rounded border border-yellow-500/20">
+                                        Статус
+                                    </button>
+                                    
+                                    <form method="POST" onsubmit="return confirm('Удалить этот заказ из истории навсегда?');" class="m-0 p-0 inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                                        <button type="submit" class="text-xs font-bold text-red-500 hover:text-red-400 transition bg-red-500/10 px-2.5 py-1 rounded border border-red-500/20">
+                                            Удалить
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="p-8 text-center text-gray-500 italic bg-gray-900/50">
+                                Активных заказов в базе данных пока нет.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="statusModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+    <div class="bg-gray-800 border border-gray-700 rounded-xl max-w-sm w-full p-6">
+        <h3 class="text-md font-black text-white uppercase mb-4">🔄 Изменить статус заказа</h3>
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit_status">
+            <input type="hidden" name="order_id" id="status_order_id">
+            
+            <div>
+                <label class="block text-xs text-gray-400 font-bold uppercase mb-1">Выберите текущее состояние</label>
+                <select name="status" id="status_select" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500 font-medium">
+                    <option value="В обработке">В обработке</option>
+                    <option value="Доставлен">Доставлен (Выполнен)</option>
+                    <option value="Отменен">Отменен</option>
+                </select>
+            </div>
+            
+            <div class="flex justify-end space-x-3 pt-2">
+                <button type="button" onclick="closeStatusModal()" class="text-xs font-bold uppercase bg-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-600 transition">Отмена</button>
+                <button type="submit" class="text-xs font-bold uppercase bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-500 transition">Обновить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openStatusModal(id, currentStatus) {
+        document.getElementById('status_order_id').value = id;
+        
+        // Автоматически выставляем текущий статус в выпадающем списке
+        const select = document.getElementById('status_select');
+        if (currentStatus === 'delivered' || currentStatus === 'Выполнен') {
+            select.value = 'Доставлен';
+        } else if (currentStatus === 'canceled' || currentStatus === 'Отменен') {
+            select.value = 'Отменен';
+        } else {
+            select.value = 'В обработке';
+        }
+        
+        document.getElementById('statusModal').classList.remove('hidden');
+    }
+    
+    function closeStatusModal() {
+        document.getElementById('statusModal').classList.add('hidden');
+    }
+</script>
+{% endblock %}

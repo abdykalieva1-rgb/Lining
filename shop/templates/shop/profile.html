@@ -1,0 +1,85 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="flex flex-col md:flex-row gap-8">
+
+        <div class="w-full md:w-1/4 bg-white p-6 rounded-lg shadow-sm h-fit">
+            <div class="flex items-center space-x-3 mb-6 pb-4 border-b">
+                <div class="w-10 h-10 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold">
+                    {{ user.username|slice:":2"|upper }}
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-800">{{ user.username }}</h2>
+                    <p class="text-xs text-gray-500">Покупатель</p>
+                </div>
+            </div>
+
+            <nav class="space-y-2">
+                <a href="#" class="flex items-center space-x-3 bg-blue-50 text-blue-700 p-3 rounded-lg font-medium text-sm transition">
+                    <span>👤</span>
+                    <span>Мой профиль</span>
+                </a>
+
+                <hr class="my-4">
+                <form action="{% url 'shop:logout' %}" method="post" class="w-full">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full flex items-center space-x-3 text-red-600 hover:bg-red-50 p-3 rounded-lg font-medium text-sm transition text-left">
+                        <span>🚪</span>
+                        <span>Выйти</span>
+                    </button>
+                </form>
+            </nav>
+        </div>
+
+        <div class="w-full md:w-3/4">
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <h1 class="text-xl font-bold text-gray-800 mb-6">Личный кабинет</h1>
+
+                <h3 class="font-bold text-gray-700 mb-4 pb-2 border-b">История ваших заказов</h3>
+
+                {% if orders %}
+                    <div class="space-y-4">
+                        {% for order in orders %}
+                            <div class="border rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-blue-300 transition">
+                                <div>
+                                    <div class="flex items-center space-x-3 mb-1">
+                                        <span class="font-bold text-gray-900 text-base">Заказ #{{ order.id }}</span>
+                                        <span class="text-sm text-gray-500">{{ order.created_at|date:"d.m.Y" }}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500">Доставка в г. {{ order.city }}</p>
+                                </div>
+
+                                <div class="flex flex-col md:items-end gap-1">
+                                    <span class="text-xs text-gray-400">Сумма заказа</span>
+                                    <span class="font-black text-gray-900 text-base">{{ order.total_price }} сом</span>
+                                </div>
+
+                                <div>
+                                    {% if order.status == 'delivered' %}
+                                        <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase tracking-wider block text-center">Доставлен</span>
+                                    {% elif order.status == 'processing' %}
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider block text-center">В обработке</span>
+                                    {% else %}
+                                        <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold uppercase tracking-wider block text-center">Новый</span>
+                                    {% endif %}
+                                </div>
+
+                                <div>
+                                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium underline">Подробнее</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-12 text-gray-500">
+                        <p class="text-lg mb-2">Вы еще не совершали заказов.</p>
+                        <a href="{% url 'shop:catalog' %}" class="text-blue-600 hover:underline font-medium">Перейти в каталог</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
