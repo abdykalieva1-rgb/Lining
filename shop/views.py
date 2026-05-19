@@ -242,7 +242,7 @@ from django.db import transaction  # Импортируем для безопа�
 from .models import Product, Order, OrderItem
 
 @login_required(login_url='shop:login')
-@transaction.atomic  # Если посреди оформления упадет интернет, база данных не пострадает
+@transaction.atomic
 def checkout(request):
     cart = request.session.get('cart', {})
     cart_items = []
@@ -270,7 +270,35 @@ def checkout(request):
         city = request.POST.get('city')
         address = request.POST.get('address')
 
-        # 1. Сохраняем заказ в базу данных
+        # ============================================================
+        # ПРОВЕРКА НАЛИЧИЯ РАЗМЕРОВ ПЕРЕД СОЗДАНИЕМ ЗАКАЗА
+        # ============================================================
+        for item in cart_items:
+            product = item['product']
+            chosen_size = str(item['size']).strip()
+
+            # Получаем актуальный список размеров из базы данных
+            if product.sizes:
+                current_sizes = [s.strip() for s in product.sizes.split(',') if s.strip()]
+            else:
+                current_sizes = []
+
+            # Если выбранного размера нет в списке доступных
+            if chosen_size not in current_sizes:
+                messages.error(
+                    request,
+                    f"К сожалению, размер {chosen_size} для товара '{product.name}' уже закончился!"
+                )
+                # Возвращаем пользователя обратно на страницу оформления с ошибкой
+                context = {
+                    'cart_items': cart_items,
+                    'total_price': total_price,
+                    'total_quantity': total_quantity,
+                }
+                return render(request, 'shop/checkout.html', context)
+        # ============================================================
+
+        # Если все проверки прошли успешно, создаем заказ в базе данных
         order = Order.objects.create(
             user=request.user,
             name=name,
@@ -289,7 +317,7 @@ def checkout(request):
                 size=item['size']
             )
 
-        # 2. Формируем красивый текст сообщения для WhatsApp
+        # Формируем текст сообщения для WhatsApp
         message = (
             f"🔔 *НОВЫЙ ЗАКАЗ LI-NING!* 🔔\n\n"
             f"📦 *Номер заказа:* #{order.id}\n"
@@ -301,36 +329,30 @@ def checkout(request):
 
         for item in cart_items:
             product = item['product']
-            chosen_size = str(item['size']).strip()  # Размер, который выбрали (например, '42')
+            chosen_size = str(item['size']).strip()
             quantity = item['quantity']
 
             message += f"▪️ {product.name} (Разм: {chosen_size}) — {quantity} шт. x {product.price} сом\n"
 
-            # ============================================================
-            # ЛОГИКА УДАЛЕНИЯ РАЗМЕРА ИЗ СТРОКИ SIZES
-            # ============================================================
+            # Удаляем размер из строки sizes (мы уже точно знаем, что он там есть)
             if product.sizes:
-                # Разбираем строку "40,41,42" в чистый список Python: ['40', '41', '42']
                 current_sizes = [s.strip() for s in product.sizes.split(',') if s.strip()]
-
-                # Если купленный размер есть в списке, удаляем его
                 if chosen_size in current_sizes:
                     current_sizes.remove(chosen_size)
-
-                    # Собираем оставшиеся размеры обратно в строку через запятую
                     product.sizes = ",".join(current_sizes)
-                    product.save()  # Сохраняем обновленный товар в базу данных
-            # ============================================================
+                    product.save()
 
         message += f"\n💰 *Итого к оплате:* {total_price} сом"
 
         # Кодируем текст для ссылки
         encoded_message = urllib.parse.quote(message)
 
-        # Твои 4 номера менеджеров
+        # Номера менеджеров
         whatsapp_numbers = [
-            "996500070629",
-
+            "996500706290",
+            "996501358735",
+            "996707319213",
+            "996704215450"
         ]
         chosen_phone = random.choice(whatsapp_numbers)
         whatsapp_url = f"https://api.whatsapp.com/send?phone={chosen_phone}&text={encoded_message}"
@@ -341,16 +363,12 @@ def checkout(request):
 
         return redirect(whatsapp_url)
 
-    # ============================================================
-    # ВОТ ОН — ОБЯЗАТЕЛЬНЫЙ ОТВЕТ ДЛЯ GET-ЗАПРОСА (ОТОБРАЖЕНИЕ СТРАНИЦЫ)
-    # ============================================================
     context = {
         'cart_items': cart_items,
         'total_price': total_price,
         'total_quantity': total_quantity,
     }
     return render(request, 'shop/checkout.html', context)
-
 @login_required(login_url='shop:login')  # Если пользователь не вошел, Django перекинет его на логин
 def profile_view(request):
     user_orders = request.user.orders.all().order_by('-created_at')

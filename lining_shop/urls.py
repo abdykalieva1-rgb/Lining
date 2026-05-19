@@ -10,8 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),  # Стандартная админка Django
     path('', include('shop.urls', namespace='shop')),
     path('catalog/', views.catalog_page, name='catalog'),
-
-path('cart/checkout/', views.checkout, name='checkout'),]
+    path('cart/checkout/', views.checkout, name='checkout'),]
 
 # Это нужно, чтобы Django умел показывать картинки кроссовок из папки media
 if settings.DEBUG:
